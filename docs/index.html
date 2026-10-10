@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>slotfinder demo</title>
+    <meta
+      name="description"
+      content="Live demo of slotfinder, a zero-dependency booking slot calculator."
+    />
+    <style>
+      :root {
+        --bg: #f3f9fe;
+        --card: #ffffff;
+        --ink: #0f2a44;
+        --muted: #5b7690;
+        --line: #d6e8f7;
+        --brand: #1f4e79;
+        --accent: #4aa3df;
+        --soft: #e6f3fc;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font:
+          15px/1.5 system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+      }
+      main {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 32px 20px 64px;
+      }
+      header h1 {
+        margin: 0;
+        font-size: 28px;
+        color: var(--brand);
+      }
+      header p {
+        margin: 4px 0 24px;
+        color: var(--muted);
+      }
+      a {
+        color: var(--brand);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+        gap: 20px;
+        align-items: start;
+      }
+      @media (max-width: 760px) {
+        .grid {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 18px;
+      }
+      label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--muted);
+        margin: 12px 0 4px;
+      }
+      label:first-child {
+        margin-top: 0;
+      }
+      input,
+      select,
+      textarea {
+        width: 100%;
+        font: inherit;
+        color: inherit;
+        padding: 8px 10px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fbfdff;
+      }
+      textarea {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 13px;
+        min-height: 70px;
+      }
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: 2px solid var(--accent);
+        outline-offset: 0;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 10px;
+      }
+      .hint {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+      .day {
+        margin-bottom: 16px;
+      }
+      .day h3 {
+        margin: 0 0 8px;
+        font-size: 14px;
+        color: var(--brand);
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .chip {
+        background: var(--soft);
+        border: 1px solid var(--line);
+        color: var(--brand);
+        border-radius: 999px;
+        padding: 3px 10px;
+        font-size: 13px;
+        font-variant-numeric: tabular-nums;
+      }
+      .chip small {
+        color: var(--muted);
+      }
+      .error {
+        color: #b42318;
+        background: #fef3f2;
+        border: 1px solid #fecdca;
+        border-radius: 8px;
+        padding: 10px;
+      }
+      .empty {
+        color: var(--muted);
+      }
+      #summary {
+        margin: 0 0 14px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      code {
+        background: var(--soft);
+        padding: 1px 5px;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>slotfinder</h1>
+        <p>
+          Open booking slots from business hours, buffers and existing bookings. Everything below
+          runs in your browser.
+          <a href="https://github.com/dtxdex1020/slotfinder">Source on GitHub</a>
+        </p>
+      </header>
+      <div class="grid">
+        <form class="card" id="form">
+          <label for="tz">Business time zone</label>
+          <select id="tz"></select>
+          <div class="row">
+            <div>
+              <label for="from">From</label>
+              <input id="from" type="date" />
+            </div>
+            <div>
+              <label for="to">To</label>
+              <input id="to" type="date" />
+            </div>
+          </div>
+          <label for="hours">Hours (Mon-Fri)</label>
+          <input id="hours" value="09:00-12:00, 13:00-17:00" />
+          <div class="hint">Comma separated HH:mm-HH:mm windows</div>
+          <div class="row">
+            <div>
+              <label for="slot">Slot (min)</label>
+              <input id="slot" type="number" min="5" step="5" value="30" />
+            </div>
+            <div>
+              <label for="buffer">Buffer (min)</label>
+              <input id="buffer" type="number" min="0" step="5" value="15" />
+            </div>
+          </div>
+          <label for="bookings">Existing bookings</label>
+          <textarea id="bookings"></textarea>
+          <div class="hint">
+            One per line: <code>YYYY-MM-DD HH:mm-HH:mm</code> in the business zone
+          </div>
+          <label for="blackouts">Blackout dates</label>
+          <input id="blackouts" placeholder="2026-12-25, 2026-12-26" />
+        </form>
+        <section class="card" aria-live="polite">
+          <p id="summary"></p>
+          <div id="out"></div>
+        </section>
+      </div>
+    </main>
+    <script type="module">
+      import { findSlots, groupByDate, zonedTimeToUtc } from './slotfinder.js';
+
+      const $ = (id) => document.getElementById(id);
+      const viewerZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const zones = [
+        'America/New_York',
+        'America/Chicago',
+        'America/Denver',
+        'America/Los_Angeles',
+        'Europe/London',
+        'Europe/Berlin',
+        'Asia/Kolkata',
+        'Asia/Tokyo',
+        'Australia/Sydney',
+        'UTC',
+      ];
+      if (!zones.includes(viewerZone)) zones.unshift(viewerZone);
+      $('tz').innerHTML = zones.map((z) => `<option>${z}</option>`).join('');
+      $('tz').value = 'America/New_York';
+
+      // Local calendar dates, so the defaults match what the visitor sees as today.
+      const iso = (d) =>
+        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const day = (offset) => new Date(Date.now() + offset * 864e5);
+      const weekdays = [];
+      for (let i = 0; weekdays.length < 2; i++)
+        if (day(i).getDay() % 6 !== 0) weekdays.push(iso(day(i)));
+      $('from').value = iso(day(0));
+      $('to').value = iso(day(6));
+      $('bookings').value = `${weekdays[0]} 10:00-11:00\n${weekdays[1]} 14:00-15:30`;
+
+      const parseRanges = (text) =>
+        text
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
+          .map((s) => s.split('-').map((t) => t.trim()));
+
+      function render() {
+        const out = $('out');
+        try {
+          const timeZone = $('tz').value;
+          const windows = parseRanges($('hours').value);
+          const bookings = $('bookings')
+            .value.split('\n')
+            .map((l) => l.trim())
+            .filter(Boolean)
+            .map((line) => {
+              const [date, range = ''] = line.split(/\s+/);
+              const [start, end] = range.split('-');
+              return {
+                start: zonedTimeToUtc(date, start, timeZone),
+                end: zonedTimeToUtc(date, end, timeZone),
+              };
+            });
+          const blackouts = $('blackouts')
+            .value.split(',')
+            .map((s) => s.trim())
+            .filter(Boolean);
+          const buffer = Number($('buffer').value) || 0;
+
+          const slots = findSlots({
+            from: $('from').value,
+            to: $('to').value,
+            timeZone,
+            hours: { mon: windows, tue: windows, wed: windows, thu: windows, fri: windows },
+            slotMinutes: Number($('slot').value),
+            bufferBefore: buffer,
+            bufferAfter: buffer,
+            bookings,
+            blackouts,
+            now: new Date(),
+          });
+
+          const local = new Intl.DateTimeFormat(undefined, {
+            timeZone: viewerZone,
+            hour: '2-digit',
+            minute: '2-digit',
+          });
+          const days = groupByDate(slots);
+          $('summary').textContent =
+            `${slots.length} open slots. Times in ${timeZone}` +
+            (viewerZone !== timeZone ? `, yours (${viewerZone}) in grey.` : '.');
+          out.innerHTML = Object.keys(days).length
+            ? Object.entries(days)
+                .map(
+                  ([date, list]) =>
+                    `<div class="day"><h3>${date}</h3><div class="chips">${list
+                      .map(
+                        (s) =>
+                          `<span class="chip">${s.time}${
+                            viewerZone !== timeZone
+                              ? ` <small>${local.format(s.start)}</small>`
+                              : ''
+                          }</span>`,
+                      )
+                      .join('')}</div></div>`,
+                )
+                .join('')
+            : '<p class="empty">No open slots in this range.</p>';
+        } catch (err) {
+          $('summary').textContent = '';
+          out.innerHTML = '';
+          const p = document.createElement('p');
+          p.className = 'error';
+          p.textContent = err.message;
+          out.append(p);
+        }
+      }
+
+      $('form').addEventListener('input', render);
+      render();
+    </script>
+  </body>
+</html>
