@@ -1,0 +1,63 @@
+{
+  "name": "slotfinder",
+  "version": "0.1.0",
+  "description": "Compute open booking slots from business hours, time zones, buffers, existing bookings and blackout dates. DST-safe, zero dependencies.",
+  "keywords": [
+    "booking",
+    "scheduling",
+    "calendar",
+    "availability",
+    "timezone",
+    "slots"
+  ],
+  "license": "MIT",
+  "author": "Dex",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dtxdex1020/slotfinder.git"
+  },
+  "homepage": "https://dtxdex1020.github.io/slotfinder/",
+  "bugs": "https://github.com/dtxdex1020/slotfinder/issues",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup && cp dist/index.js docs/slotfinder.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint . && prettier --check . && tsc --noEmit",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@types/node": "^20.19.43",
+    "eslint": "^9.39.5",
+    "globals": "^16.5.0",
+    "prettier": "^3.9.9",
+    "tsup": "^8.5.1",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.71.1",
+    "vitest": "^3.2.7"
+  }
+}
